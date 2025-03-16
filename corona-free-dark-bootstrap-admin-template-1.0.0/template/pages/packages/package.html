@@ -6,36 +6,105 @@
     <title>Package Details Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-        }
-
+        /* Background Image */
         .bg-image {
-            background: url('your-background-image.jpg') no-repeat center center fixed;
+            background-image: url('https://www.example.com/your-image.jpg');
             background-size: cover;
-            height: 100%;
+            background-position: center;
+            min-height: 100vh; /* Changed from height to min-height */
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            padding: 20px;
         }
 
+        /* Form Container Styling */
         .form-container {
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.6);
             padding: 30px;
             border-radius: 10px;
-            width: 90%;
+            width: 100%;
             max-width: 900px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
-        .form-container label {
-            color: white;
+        /* Headings */
+        h3 {
+            font-family: 'Arial', sans-serif;
             font-weight: bold;
+            margin-bottom: 20px;
         }
 
-        .form-container button {
-            margin-top: 10px;
+        /* Buttons Styling */
+        .btn {
+            font-size: 16px;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+
+        /* Button Colors */
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transition: 0.3s;
+        }
+
+        /* Form Fields */
+        .form-label {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        /* Select Dropdown */
+        .form-select {
+            border-radius: 8px;
+            padding: 12px;
+            background-color: #f8f9fa;
+        }
+
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            width: 80%;
+            margin-top: 40px; /* Added spacing between the form and the cards */
+        }
+
+        .credit-card {
+            background: #2a2a3a;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 250px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
@@ -82,34 +151,46 @@
                 <div class="col-md-6">
                     <label for="creditBundle" class="form-label">Credit Bundle</label>
                     <select class="form-select" id="creditBundle">
-                        <option value="bundle1">select Credit Bundle</option>
+                        <option value="bundle1">Select Credit Bundle</option>
                     </select>
                 </div>
             </div>
+
             <div class="col-md-6">
-                <input type="hidden" class="form-control" id="creditId" disabled>
+                <input type="hidden" class="form-control" id="packageId" disabled>
             </div>
+
             <div class="row text-center">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <button type="button" class="btn btn-success w-100" id="saveButton">Save</button>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <button type="button" class="btn btn-primary w-100">Update</button>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <button type="button" class="btn btn-danger w-100">Delete</button>
                 </div>
-                <div class="col-md-3">
-                    <button type="button" class="btn btn-secondary w-100">View</button>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-secondary w-100" onclick="viewPackages()">View</button>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-secondary w-100" onclick="clearForm()">Clear</button>
                 </div>
             </div>
         </form>
     </div>
+
+    <!-- Package List Cards -->
+    <div class="card-container" id="packageList">
+        <!-- Dynamically generated package cards will appear here -->
+    </div>
 </div>
+</body>
+
+
 <script src="../../../../js/jquery.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
 
 <script>
     let authToken = localStorage.getItem("authToken");
@@ -225,7 +306,70 @@
         });
     });
 
-</script>
+    function viewPackages() {
+        $.ajax({
+            url: "http://localhost:8080/api/v1/packages/getAll",
+            type: "GET",
+            headers: { "Authorization": `Bearer ${authToken}` },
+            success: function (response) {
+                // Empty the existing package list
+                $("#packageList").empty();
 
+                // Check if the response is in the expected format (array of packages)
+                if (!Array.isArray(response.data)) {
+                    console.error("Unexpected response format:", response);
+                    alert("Error fetching packages. Check console for details.");
+                    return;
+                }
+
+                // Iterate over the packages and append them to the list
+                response.data.forEach(pkg => {
+                    $("#packageList").append(`
+                    <div class="credit-card" onclick="fillForm(${pkg.id})">
+                        <h5>${pkg.packageName}</h5>
+                        <p>Type: ${pkg.packageType}</p>
+                        <p>Data Limit: ${pkg.dataLimit} GB</p>
+                        <p>Price: LKR ${pkg.price}</p>
+                        <p>Validity: ${pkg.validityDays} days</p>
+                    </div>
+                `);
+                });
+            },
+            error: function (xhr) {
+                console.error("Failed to load packages:", xhr.responseText);
+                alert("Failed to fetch packages.");
+            },
+        });
+    }
+
+
+    function clearForm() {
+        // Clear the form fields
+        $("#packageName").val("");
+        $("#packageType").val("");
+        $("#dataLimit").val("");
+        $("#callMinutes").val("");
+        $("#smsLimit").val("");
+        $("#price").val("");
+        $("#validityDays").val("");
+        $("#creditBundle").val("");
+    }
+
+    function fillForm(packageId, packageName, price, dataLimit, callMinutes, smsLimit, validityDays, creditBundle) {
+        // Set form values with the provided package data
+        $("#packageId").val(packageId);  // Assuming you're passing the packageId as well
+        $("#packageName").val(packageName);
+        $("#price").val(price);
+        $("#dataLimit").val(dataLimit);
+        $("#callMinutes").val(callMinutes);
+        $("#smsLimit").val(smsLimit);
+        $("#validityDays").val(validityDays);
+        $("#creditBundle").val(creditBundle);
+    }
+
+</script>
 </body>
 </html>
+
+
+
