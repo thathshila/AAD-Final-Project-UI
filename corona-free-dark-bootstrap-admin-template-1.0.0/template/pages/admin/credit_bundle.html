@@ -173,6 +173,7 @@
             <label class="form-label">Bundle Name</label>
             <input type="text" id="bundleName" class="form-control" placeholder="Enter bundle name">
         </div>
+        <input type="hidden" id="bundleId" class="form-control">
         <div class="mb-3">
             <label class="form-label">Amount</label>
             <input type="number" id="amount" class="form-control" placeholder="Enter amount">
@@ -231,13 +232,13 @@
             success: function (response) {
                 console.log("API Response:", response); // Debugging
 
-                let bundles = response.data; // Extract the array from the response
+                let bundles = response.data; // Extract the array from response
 
                 if (Array.isArray(bundles)) {
                     $("#bundleList").empty();
                     bundles.forEach(bundle => {
                         const bundleCard = `
-                        <div class="credit-card">
+                        <div class="credit-card" onclick="fillForm('${bundle.bundleId}', '${bundle.bundleName}', ${bundle.amount})">
                             <h5>${bundle.bundleName}</h5>
                             <p>Amount: $${bundle.amount}</p>
                         </div>
@@ -255,6 +256,42 @@
             }
         });
     }
+
+    // Function to fill input fields when a card is clicked
+    function fillForm(bundleId, bundleName, amount) {
+        $("#bundleId").val(bundleId);
+        $("#bundleName").val(bundleName);
+        $("#amount").val(amount);
+    }
+
+
+    $(document).ready(function () {
+        $(".btn-danger").click(function () {
+            var bundleId = $("#bundleId").val().trim();
+
+            if (bundleId === "") {
+                alert("Please enter the bundle name to delete.");
+                return;
+            }
+
+            if (!confirm("Are you sure you want to delete this bundle?")) {
+                return; // User canceled delete action
+            }
+
+            $.ajax({
+                url: `http://localhost:8080/api/v1/credit_bundle/delete/${bundleId}`, // Adjust based on your API
+                type: "DELETE",
+                headers: { "Authorization": `Bearer ${authToken}` },
+                success: function (response) {
+                    alert("Bundle deleted successfully!");
+                    viewBundles(); // Refresh list after deletion
+                },
+                error: function (xhr, status, error) {
+                    alert("Delete failed: " + xhr.responseText);
+                }
+            });
+        });
+    });
 
 </script>
 
