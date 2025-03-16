@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Package Details Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
+
+        .bg-image {
+            background: url('your-background-image.jpg') no-repeat center center fixed;
+            background-size: cover;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.6);
+        }
+
+        .form-container label {
+            color: white;
+            font-weight: bold;
+        }
+
+        .form-container button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="bg-image">
+    <div class="form-container">
+        <h3 class="text-white text-center">Package Details</h3>
+        <form>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="packageName" class="form-label">Package Name</label>
+                    <input type="text" class="form-control" id="packageName" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="packageType" class="form-label">Package Type</label>
+                    <input type="text" class="form-control" id="packageType" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="dataLimit" class="form-label">Data Limit (GB)</label>
+                    <input type="number" class="form-control" id="dataLimit" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="callMinutes" class="form-label">Call Minutes</label>
+                    <input type="number" class="form-control" id="callMinutes" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="smsLimit" class="form-label">SMS Limit</label>
+                    <input type="number" class="form-control" id="smsLimit" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="price" class="form-label">Price (LKR)</label>
+                    <input type="number" class="form-control" id="price" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="validityDays" class="form-label">Validity (Days)</label>
+                    <input type="number" class="form-control" id="validityDays" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="creditBundle" class="form-label">Credit Bundle</label>
+                    <select class="form-select" id="creditBundle">
+                        <option value="bundle1">select Credit Bundle</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <input type="hidden" class="form-control" id="creditId" disabled>
+            </div>
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-success w-100" id="saveButton">Save</button>
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-primary w-100">Update</button>
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-danger w-100">Delete</button>
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-secondary w-100">View</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="../../../../js/jquery.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let authToken = localStorage.getItem("authToken");
+    loadCreditBundles();
+
+    function loadCreditBundles() {
+        $.ajax({
+            url: "http://localhost:8080/api/v1/credit_bundle/getNames",
+            method: "GET",
+            dataType: "json",
+            headers: { "Authorization": `Bearer ${authToken}` },
+            success: (resp) => {
+                console.log("API Response:", resp); // Debugging
+
+                // Check if `resp.data` is an array
+                if (!Array.isArray(resp.data)) {
+                    console.error("Error: Response data is not an array", resp);
+                    return;
+                }
+
+                let nameDropdown = $("#creditBundle");
+                nameDropdown.empty().append('<option value="">Select CreditBundle</option>');
+
+                // Loop through `resp.data`
+                resp.data.forEach(name => {
+                    nameDropdown.append(`<option value="${name}">${name}</option>`);
+                });
+            },
+            error: (err) => {
+                console.error("Error loading credit bundles:", err);
+            }
+        });
+    }
+
+    $("#creditBundle").change(function () {
+        let selectedBundle = $(this).val();
+        if (selectedBundle) {
+            $.ajax({
+                url: `http://localhost:8080/api/v1/credit_bundle/getCreditByName/${selectedBundle}`,
+                method: "GET",
+                dataType: "json",
+                headers: { "Authorization": `Bearer ${authToken}` },
+                success: function (resp) {
+                    console.log("Selected Bundle Data Response:", resp); // Debugging output
+
+                    if (resp && resp.data) {
+                        console.log("Bundle Data:", resp.data); // This should log the bundle data
+                        // Assuming resp.data contains the ID, update the field accordingly
+                        $("#creditId").val(resp.data); // Set the credit ID field
+                    } else {
+                        $("#creditId").val("");  // Clear input if no data found
+                    }
+                },
+                error: function (error) {
+                    console.error("Error fetching selected bundle details:", error);
+                }
+            });
+        } else {
+            console.log("No bundle selected.");
+            $("#creditId").val("");  // Clear input if no bundle selected
+        }
+    });
+
+    $("#saveButton").click(function () {
+        // Get form values
+        const packageName = $("#packageName").val();
+        const packageType = $("#packageType").val();
+        const dataLimit = $("#dataLimit").val();
+        const callMinutes = $("#callMinutes").val();
+        const smsLimit = $("#smsLimit").val();
+        const price = $("#price").val();
+        const validityDays = $("#validityDays").val();
+        const creditBundle = $("#creditBundle").val();
+        const creditId = $("#creditId").val();  // This is the credit bundle ID
+
+        // Validate that all fields are filled
+        if (!packageName || !packageType || !dataLimit || !callMinutes || !smsLimit || !price || !validityDays || !creditBundle || !creditId) {
+            alert("Please fill in all fields before saving.");
+            return;
+        }
+
+        // Create the object to send in the request body
+        const packageData = {
+            packageName: packageName,
+            packageType: packageType,
+            dataLimit: dataLimit,
+            callMinutes: callMinutes,
+            smsLimit: smsLimit,
+            price: price,
+            validityDays: validityDays,
+            credit_bundle_id: creditId  // This is the credit ID from the hidden input field
+        };
+
+        // Send a POST request to save the package data
+        $.ajax({
+            url: "http://localhost:8080/api/v1/packages/save",  // Update this with your actual save API endpoint
+            method: "POST",
+            dataType: "json",
+            headers: {
+                "Authorization": `Bearer ${authToken}`,  // Add token for authorization
+                "Content-Type": "application/json"
+            },
+            data: JSON.stringify(packageData),  // Convert the object to a JSON string
+            success: function (response) {
+                console.log("Save successful:", response);
+                    alert("Package saved successfully!");
+            },
+
+            error: function (error) {
+                console.error("Error saving package:", error);
+                alert("An error occurred while saving the package.");
+            }
+        });
+    });
+
+</script>
+
+</body>
+</html>

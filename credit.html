@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Bundle Form</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<h2>Credit Bundle Form</h2>
+<form id="creditBundleForm">
+    <label for="bundleName">Bundle Name:</label>
+    <input type="text" id="bundleName" name="bundleName" required><br><br>
+
+    <label for="amount">Amount:</label>
+    <input type="number" id="amount" name="amount" step="0.01" required><br><br>
+
+    <label for="admin_id">Admin ID:</label>
+    <input type="hidden" id="admin_id" name="admin_id" required><br><br>
+
+    <button type="button" id="saveButton">Save</button>
+</form>
+
+<script>
+    $(document).ready(function() {
+        $('#saveButton').click(function() {
+            // Collect form data
+            const data = {
+                bundleName: $('#bundleName').val(),
+                amount: $('#amount').val(),
+                admin_id: $('#admin_id').val()
+            };
+
+            // Get the user token from local storage
+            const userToken = localStorage.getItem('authToken'); // Assuming the token is saved under 'userToken'
+
+            // Check if the token exists
+            if (!userToken) {
+                alert('No token found. Please login first.');
+                return;
+            }
+
+            // Perform AJAX request to save data
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/credit_bundle/save', // Replace with your backend URL
+                type: 'POST',
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                headers: {
+                    'Authorization': 'Bearer ' + userToken // Include the token in the Authorization header
+                },
+                success: function(response) {
+                    alert('Data saved successfully!');
+                },
+                error: function(xhr, status, error) {
+                    alert('Error: ' + error);
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
