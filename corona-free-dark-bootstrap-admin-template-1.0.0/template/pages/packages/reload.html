@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Reload</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to right, #141e30, #243b55);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: #1c1c1c;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .btn-custom {
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+<div class="container text-center">
+    <h2>Manage Reload</h2>
+    <form>
+        <div class="mb-3">
+            <label for="reloadAmount" class="form-label">Reload Amount</label>
+            <input type="number" class="form-control" id="reloadAmount" placeholder="Enter amount">
+        </div>
+        <div class="mb-3">
+            <label for="creditBundle" class="form-label">Bundle Name</label>
+            <select class="form-select" id="creditBundle">
+                <option selected>Choose a bundle</option>
+            </select>
+        </div>
+        <input type="hidden" class="form-control" id="creditId">
+        <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-primary btn-custom" id="saveButton">Save</button>
+            <button type="button" class="btn btn-warning btn-custom">Update</button>
+            <button type="button" class="btn btn-danger btn-custom">Delete</button>
+            <button type="button" class="btn btn-info btn-custom">View</button>
+        </div>
+    </form>
+</div>
+<script src="../../../../js/jquery.js"></script>
+<script>
+    let authToken = localStorage.getItem("authToken");
+    loadCreditBundles();
+
+    function loadCreditBundles() {
+        $.ajax({
+            url: "http://localhost:8080/api/v1/credit_bundle/getNames",
+            method: "GET",
+            dataType: "json",
+            headers: { "Authorization": `Bearer ${authToken}` },
+            success: (resp) => {
+                console.log("API Response:", resp); // Debugging
+
+                // Check if `resp.data` is an array
+                if (!Array.isArray(resp.data)) {
+                    console.error("Error: Response data is not an array", resp);
+                    return;
+                }
+
+                let nameDropdown = $("#creditBundle");
+                nameDropdown.empty().append('<option value="">Select CreditBundle</option>');
+
+                // Loop through `resp.data`
+                resp.data.forEach(name => {
+                    nameDropdown.append(`<option value="${name}">${name}</option>`);
+                });
+            },
+            error: (err) => {
+                console.error("Error loading credit bundles:", err);
+            }
+        });
+    }
+
+    $("#creditBundle").change(function () {
+        let selectedBundle = $(this).val();
+        if (selectedBundle) {
+            $.ajax({
+                url: `http://localhost:8080/api/v1/credit_bundle/getCreditByName/${selectedBundle}`,
+                method: "GET",
+                dataType: "json",
+                headers: { "Authorization": `Bearer ${authToken}` },
+                success: function (resp) {
+                    console.log("Selected Bundle Data Response:", resp); // Debugging output
+
+                    if (resp && resp.data) {
+                        console.log("Bundle Data:", resp.data); // This should log the bundle data
+                        // Assuming resp.data contains the ID, update the field accordingly
+                        $("#creditId").val(resp.data); // Set the credit ID field
+                    } else {
+                        $("#creditId").val("");  // Clear input if no data found
+                    }
+                },
+                error: function (error) {
+                    console.error("Error fetching selected bundle details:", error);
+                }
+            });
+        } else {
+            console.log("No bundle selected.");
+            $("#creditId").val("");  // Clear input if no bundle selected
+        }
+    });
+
+    $("#saveButton").click(function () {
+        // Get form values
+        const amount = $("#reloadAmount").val();
+        // const creditBundle = $("#creditBundle").val();
+        const creditId = $("#creditId").val();  // This is the credit bundle ID
+
+
+        // Create the object to send in the request body
+        const reloadData = {
+            amount: amount,
+            credit_bundle_id: creditId  // This is the credit ID from the hidden input field
+        };
+
+        // Send a POST request to save the package data
+        $.ajax({
+            url: "http://localhost:8080/api/v1/reload/save",  // Update this with your actual save API endpoint
+            method: "POST",
+            dataType: "json",
+            headers: {
+                "Authorization": `Bearer ${authToken}`,  // Add token for authorization
+                "Content-Type": "application/json"
+            },
+            data: JSON.stringify(reloadData),  // Convert the object to a JSON string
+            success: function (response) {
+                console.log("Save successful:", response);
+                alert("Reload saved successfully!");
+            },
+
+            error: function (error) {
+                console.error("Error saving reload:", error);
+                alert("An error occurred while saving the reload.");
+            }
+        });
+    });
+
+</script>
+
+</body>
+</html>
