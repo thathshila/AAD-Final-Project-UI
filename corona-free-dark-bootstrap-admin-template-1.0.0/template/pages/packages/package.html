@@ -325,12 +325,15 @@
                 // Iterate over the packages and append them to the list
                 response.data.forEach(pkg => {
                     $("#packageList").append(`
-                    <div class="credit-card" onclick="fillForm(${pkg.id})">
+                    <div class="credit-card" onclick="fillForm('${pkg.packageId}', '${pkg.packageName}','${pkg.price}',${pkg.dataLimit},'${pkg.validityDays}','${pkg.smsLimit}','${pkg.packageType}')">
+
                         <h5>${pkg.packageName}</h5>
                         <p>Type: ${pkg.packageType}</p>
                         <p>Data Limit: ${pkg.dataLimit} GB</p>
                         <p>Price: LKR ${pkg.price}</p>
                         <p>Validity: ${pkg.validityDays} days</p>
+                        <p>Sms: ${pkg.smsLimit} </p>
+
                     </div>
                 `);
                 });
