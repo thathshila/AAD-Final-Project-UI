@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reload & Pay</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .full-page {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f8f9fa;
+        }
+        .content {
+            text-align: center;
+            padding: 20px;
+        }
+        h3 {
+            margin-bottom: 15px;
+        }
+        p {
+            margin-bottom: 25px;
+            color: #555;
+        }
+        .input-box {
+            width: 100%;
+            max-width: 320px;
+            margin: auto;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .btn-custom {
+            background-color: #17d59c;
+            color: white;
+            width: 100%;
+            max-width: 320px;
+            font-weight: bold;
+            border-radius: 20px;
+            padding: 12px;
+            margin-top: 20px;
+        }
+        .login-link {
+            display: block;
+            margin-top: 30px;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .login-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="full-page">
+    <div class="content">
+        <h3 class="mb-3">Reload & Pay</h3>
+        <p>Please enter your connection number or account number.</p>
+        <form>
+            <div class="mb-4">
+                <input type="text" class="form-control input-box" id="accountNumber" placeholder="Enter number" required>
+            </div>
+            <button type="submit" class="btn btn-custom">CONTINUE</button>
+        </form>
+        <a href="#" class="login-link">Login to pay all your bills at once</a>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
